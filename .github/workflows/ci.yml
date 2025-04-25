@@ -47,6 +47,6 @@ jobs:
           fail_action: false # не падаем из-за найденных уязвимостей
 
       - name: Stop Docker containers
-        run: docker-compose down
+        run: docker compose down
 
  
