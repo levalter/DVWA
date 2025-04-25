@@ -37,7 +37,7 @@ jobs:
 
       - name: Start DVWA App (docker-compose)
         run: |
-          docker-compose up -d
+          docker compose up -d
           sleep 30 # Ждем поднятия DVWA
 
       - name: Run OWASP ZAP Full Scan
