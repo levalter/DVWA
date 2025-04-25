@@ -1,0 +1,50 @@
+name: DVWA SAST & DAST Scan
+
+on:
+  push:
+    branches: [ "test" ]
+  pull_request:
+    branches: [ "test" ]
+
+jobs:
+  sast:
+    name: Run SAST (Semgrep with custom rules)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Semgrep
+        run: |
+          pip install semgrep
+
+      - name: Run Semgrep with Custom SQL Injection Rules
+        run: |
+          semgrep --config ./semgrep-rules/ --include "**/*.php" --sarif --output semgrep-results.sarif
+
+      - name: Upload SAST results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: semgrep-results.sarif
+
+  dast:
+    name: Run DAST (OWASP ZAP)
+    runs-on: ubuntu-latest
+    needs: sast
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start DVWA App (docker-compose)
+        run: |
+          docker-compose up -d
+          sleep 30 # Ждем поднятия DVWA
+
+      - name: Run OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.9.0
+        with:
+          target: 'http://localhost:80'
+          fail_action: false # не падаем из-за найденных уязвимостей
+
+      - name: Stop Docker containers
+        run: docker-compose down
