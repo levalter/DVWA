@@ -1,0 +1,17 @@
+rules:
+  - id: php-sql-injection
+    patterns:
+      - pattern: |
+          $DB->query("SELECT ... $VAR ...");
+      - pattern-either:
+          - pattern-inside: |
+              $VAR = $_GET["..."];
+          - pattern-inside: |
+              $VAR = $_POST["..."];
+          - pattern-inside: |
+              $VAR = $_REQUEST["..."];
+    message: |
+      Ищем инъекции
+    languages:
+      - php
+    severity: ERROR
